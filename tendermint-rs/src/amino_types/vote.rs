@@ -22,9 +22,9 @@ pub struct Vote {
     #[prost(int64)]
     pub round: i64,
     #[prost(message)]
-    pub block_id: Option<BlockId>,
-    #[prost(message)]
     pub timestamp: Option<TimeMsg>,
+    #[prost(message)]
+    pub block_id: Option<BlockId>,
     #[prost(bytes)]
     pub validator_address: Vec<u8>,
     #[prost(int64)]
@@ -73,9 +73,9 @@ pub struct CanonicalVote {
     #[prost(sfixed64)]
     pub round: i64,
     #[prost(message)]
-    pub block_id: Option<CanonicalBlockId>,
-    #[prost(message)]
     pub timestamp: Option<TimeMsg>,
+    #[prost(message)]
+    pub block_id: Option<CanonicalBlockId>,
     #[prost(string)]
     pub chain_id: String,
 }

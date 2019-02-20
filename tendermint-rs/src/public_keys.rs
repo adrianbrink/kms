@@ -37,7 +37,7 @@ impl Display for ConsensusKey {
         match self {
             ConsensusKey::Ed25519(ref pk) => {
                 key_bytes.extend(pk.as_bytes());
-                bech32::encode("cosmosvalconspub", &key_bytes).fmt(f)
+                bech32::encode("icp", &key_bytes).fmt(f)
             }
         }
     }
