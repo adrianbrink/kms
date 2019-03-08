@@ -8,6 +8,7 @@ use std::{
     path::{Path, PathBuf},
     process,
 };
+use subtle_encoding::base64;
 use tendermint::public_keys::ConsensusKey;
 
 /// The `yubihsm keys generate` subcommand
@@ -34,8 +35,8 @@ pub struct GenerateCommand {
     pub backup_file: Option<PathBuf>,
 
     /// Key ID of the wrap key to use when creating a backup
-    #[options(no_short, long = "backup-key")]
-    pub backup_wrap_key: Option<yubihsm::object::Id>,
+    #[options(short = "w", long = "wrapkey")]
+    pub wrap_key_id: Option<yubihsm::object::Id>,
 
     /// Key IDs to generate
     #[options(free)]
@@ -60,7 +61,7 @@ impl Callable for GenerateCommand {
             }
         }
 
-        let mut hsm = crate::yubihsm::client();
+        let hsm = crate::yubihsm::client();
         let mut capabilities = DEFAULT_CAPABILITIES;
 
         // If the key isn't explicitly marked as non-exportable, allow it to be exported
@@ -104,10 +105,10 @@ impl Callable for GenerateCommand {
                     "can only create backups if generating one key at a time"
                 );
                 create_encrypted_backup(
-                    &mut hsm,
+                    &hsm,
                     *key_id,
                     &backup_file,
-                    self.backup_wrap_key.unwrap_or(DEFAULT_WRAP_KEY),
+                    self.wrap_key_id.unwrap_or(DEFAULT_WRAP_KEY),
                 );
             }
         }
@@ -118,8 +119,9 @@ impl Callable for GenerateCommand {
 impl_command!(GenerateCommand);
 
 /// Create an encrypted backup of this key under the given wrap key ID
+// TODO(tarcieri): unify this with the similar code in export?
 fn create_encrypted_backup(
-    hsm: &mut yubihsm::Client,
+    hsm: &yubihsm::Client,
     key_id: yubihsm::object::Id,
     backup_file_path: &Path,
     wrap_key_id: yubihsm::object::Id,
@@ -152,7 +154,7 @@ fn create_encrypted_backup(
         });
 
     backup_file
-        .write_all(&wrapped_bytes.into_vec())
+        .write_all(&base64::encode(&wrapped_bytes.into_vec()))
         .unwrap_or_else(|e| {
             status_err!("error writing backup: {}", e);
             process::exit(1);
